@@ -1,5 +1,7 @@
 package com.eventledger.eventgateway.service;
 
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import com.eventledger.eventgateway.model.Event;
@@ -16,19 +18,18 @@ public class EventService {
         this.eventRepository = eventRepository;
         this.webClient = accountServiceClient;
     }
-
+    
     public Event processEvent(Event event) {
-        // Idempotency check
         if (eventRepository.existsById(event.getEventId())) {
             return eventRepository.findById(event.getEventId()).get();
         }
 
-        // Save locally
         Event saved = eventRepository.save(event);
 
-        // Forward to Account Service
+        // Forward to Account Service with trace ID
         webClient.post()
                 .uri("/accounts/" + event.getAccountId() + "/transactions")
+                .header("X-Trace-Id", UUID.randomUUID().toString()) // propagate trace
                 .bodyValue(event)
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -36,4 +37,5 @@ public class EventService {
 
         return saved;
     }
+
 }
