@@ -1,5 +1,9 @@
 package com.eventledger.accountservice.repository;
 
-public class TransactionRepository {
+import com.eventledger.accountservice.model.Transaction;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
+public interface TransactionRepository extends JpaRepository<Transaction, String> {
+    List<Transaction> findByAccountIdOrderByTimestampAsc(String accountId);
 }

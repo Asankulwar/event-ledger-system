@@ -1,5 +1,7 @@
 package com.eventledger.accountservice.repository;
 
-public class AccountRepository {
+import com.eventledger.accountservice.model.Account;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+public interface AccountRepository extends JpaRepository<Account, String> {
 }
