@@ -2,6 +2,9 @@ package com.eventledger.eventgateway.service;
 
 import com.eventledger.eventgateway.model.Event;
 import com.eventledger.eventgateway.repository.EventRepository;
+
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Service;
@@ -29,8 +32,9 @@ public class EventService {
                                    .register(registry);
     }
 
+    @CircuitBreaker(name = "accountServiceCB", fallbackMethod = "fallbackProcessEvent")
+    @Retry(name = "accountServiceRetry")
     public Event processEvent(Event event, String traceId) {
-        // Idempotency check
         Optional<Event> existing = eventRepository.findById(event.getEventId());
         if (existing.isPresent()) {
             log.info("traceId={} Event already exists with id={}", traceId, event.getEventId());
@@ -54,5 +58,17 @@ public class EventService {
         log.info("traceId={} Forwarded event to Account Service for accountId={}", traceId, event.getAccountId());
 
         return saved;
+    }
+    
+    // ✅ Fallback method when circuit breaker opens or retries fail
+    public Event fallbackProcessEvent(Event event, String traceId, Throwable t) {
+        log.error("traceId={} Failed to forward event to Account Service. Reason={}", traceId, t.getMessage());
+        // Still return the locally saved event so system behaves gracefully
+        return eventRepository.findById(event.getEventId()).orElse(event);
+    }
+
+    // ✅ New method for controller
+    public Optional<Event> getEventById(String id) {
+        return eventRepository.findById(id);
     }
 }
