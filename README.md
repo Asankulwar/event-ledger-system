@@ -52,7 +52,7 @@ Account Service → http://localhost:8081/swagger-ui.html
 
 
 📡 API Endpoints
-Event Gateway
+## Event Gateway
 POST /events → Submit event
 
 GET /events/{id} → Retrieve event by ID
@@ -61,7 +61,7 @@ GET /events?account={accountId} → List events for account
 
 GET /events/health → Health check
 
-Account Service
+## Account Service
 POST /accounts/{accountId}/transactions → Apply transaction
 
 GET /accounts/{accountId}/balance → Get balance
@@ -71,15 +71,15 @@ GET /accounts/{accountId} → Get account details
 GET /health → Health check
 
 
-Testing
+## Testing
 Run integration tests:
+ mvn test
 
-mvn test
 Event Gateway → EventGatewayIntegrationTest
 
 Account Service → AccountServiceIntegrationTest
 
-Notes
+## Notes
 Implements resiliency patterns (circuit breaker, graceful degradation).
 
 Independent H2 databases for each service.
