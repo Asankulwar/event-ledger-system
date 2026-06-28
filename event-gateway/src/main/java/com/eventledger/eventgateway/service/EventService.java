@@ -1,16 +1,20 @@
 package com.eventledger.eventgateway.service;
 
+import org.springframework.stereotype.Service;
+
 import com.eventledger.eventgateway.model.Event;
 import com.eventledger.eventgateway.repository.EventRepository;
-import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final WebClient webClient;
 
-    public EventService(EventRepository eventRepository) {
+    public EventService(EventRepository eventRepository, WebClient accountServiceClient) {
         this.eventRepository = eventRepository;
+        this.webClient = accountServiceClient;
     }
 
     public Event processEvent(Event event) {
@@ -18,8 +22,18 @@ public class EventService {
         if (eventRepository.existsById(event.getEventId())) {
             return eventRepository.findById(event.getEventId()).get();
         }
+
         // Save locally
-        return eventRepository.save(event);
-        // Forward to Account Service will be added later (Commit 5+)
+        Event saved = eventRepository.save(event);
+
+        // Forward to Account Service
+        webClient.post()
+                .uri("/accounts/" + event.getAccountId() + "/transactions")
+                .bodyValue(event)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+
+        return saved;
     }
 }
