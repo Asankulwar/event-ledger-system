@@ -20,11 +20,13 @@ public class EventController {
         this.eventRepository = eventRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<Event> submitEvent(@RequestBody Event event) {
-        Event saved = eventService.processEvent(event);
+    @PostMapping("/events")
+    public ResponseEntity<Event> createEvent(@RequestBody Event event,
+                                             @RequestHeader(value = "X-Trace-Id", required = false) String traceId) {
+        Event saved = eventService.processEvent(event, traceId);
         return ResponseEntity.ok(saved);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<Event> getEventById(@PathVariable String id) {

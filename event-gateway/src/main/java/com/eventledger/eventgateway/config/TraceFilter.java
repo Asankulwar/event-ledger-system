@@ -7,12 +7,16 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.UUID;
 
 @Component
 public class TraceFilter implements Filter {
+
+    private static final Logger log = LoggerFactory.getLogger(TraceFilter.class);
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -30,8 +34,8 @@ public class TraceFilter implements Filter {
         // Add to response headers
         httpResponse.setHeader("X-Trace-Id", traceId);
 
-        // Log with trace ID
-        System.out.println("[TRACE] " + traceId + " " + httpRequest.getMethod() + " " + httpRequest.getRequestURI());
+        // Log with trace ID (inside the method, not outside)
+        log.info("traceId={} method={} uri={}", traceId, httpRequest.getMethod(), httpRequest.getRequestURI());
 
         chain.doFilter(request, response);
     }
