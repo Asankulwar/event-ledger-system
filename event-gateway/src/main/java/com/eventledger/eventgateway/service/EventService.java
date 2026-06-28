@@ -7,11 +7,14 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -66,7 +69,10 @@ public class EventService {
         // Still return the locally saved event so system behaves gracefully
         return eventRepository.findById(event.getEventId()).orElse(event);
     }
-
+    
+    public List<Event> getEventsByAccount(String accountId) {
+        return eventRepository.findByAccountIdOrderByEventTimestampAsc(accountId);
+    }
     // ✅ New method for controller
     public Optional<Event> getEventById(String id) {
         return eventRepository.findById(id);
